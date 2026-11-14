@@ -1,0 +1,83 @@
+name: Build NanasParty APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Release & Debug APKs
+        run: ./gradlew assembleRelease assembleDebug --stacktrace
+
+      - name: Rename Release APK
+        run: |
+          mkdir -p output_apks
+          if [ -f "app/build/outputs/apk/release/app-release.apk" ]; then
+            cp app/build/outputs/apk/release/app-release.apk output_apks/NanasParty-release.apk
+          elif [ -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+            cp app/build/outputs/apk/release/app-release-unsigned.apk output_apks/NanasParty-release-unsigned.apk
+          fi
+          if [ -f "app/build/outputs/apk/debug/app-debug.apk" ]; then
+            cp app/build/outputs/apk/debug/app-debug.apk output_apks/NanasParty-debug.apk
+          fi
+          ls -la output_apks/
+
+      - name: Upload APKs as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NanasParty-APKs
+          path: output_apks/*
+          retention-days: 30
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v1.0.0' }}
+          name: NanasParty v1.0.0
+          body: |
+            🎉 **NanasParty v1.0.0**
+            Package: `com.nanasparty.nanas`
+            
+            Game pesta multiplayer 1-4 pemain terinspirasi dari Stickman Party dengan karakter Nanas lucu!
+            
+            ### Fitur Mini-Games:
+            - 🍍 **Nanas Tanks**: Pertempuran tank peluru memantul
+            - ⚽ **Nanas Soccer**: Sepak bola 1v1 / 2v2 bola lentur
+            - 🏎️ **Nanas Micro Rally**: Balapan sirkuit seru
+            - 🥋 **Nanas Sumo Clash**: Adu dorong keluar pulau melayang
+            - 🎨 **Nanas Color Clash**: Mewarnai ubin lantai terbanyak
+            - 💣 **Nanas Pass The Bomb**: Oper bom kelapa sebelum meledak
+            - 👻 **Nanas Ghost Survival**: Menghindar dari hantu dan zona gelap
+            - 🏃 **Nanas Obstacle Run**: Hindari rintangan menuju garis akhir
+            
+            Unduh APK di bawah dan pasang langsung di HP Android Anda!
+          files: output_apks/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

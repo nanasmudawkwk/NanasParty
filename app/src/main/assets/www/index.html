@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NanasParty - 1 2 3 4 Player Party Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- UI Overlay -->
+    <div id="ui-layer">
+      <!-- Main Menu -->
+      <div id="screen-menu" class="screen active">
+        <div class="menu-header">
+          <div class="logo-box">
+            <span class="logo-icon">🍍</span>
+            <h1 class="logo-title">NANAS<span class="logo-highlight">PARTY</span></h1>
+          </div>
+          <p class="subtitle">Game Pesta 1 - 4 Pemain Terlucu!</p>
+        </div>
+
+        <div class="menu-card">
+          <h3>Pilih Jumlah Pemain</h3>
+          <div class="player-select-row">
+            <button class="btn-player-count active" data-players="1">1P <span class="bot-badge">+3 Bot</span></button>
+            <button class="btn-player-count" data-players="2">2P <span class="bot-badge">+2 Bot</span></button>
+            <button class="btn-player-count" data-players="3">3P <span class="bot-badge">+1 Bot</span></button>
+            <button class="btn-player-count" data-players="4">4P <span class="bot-badge">Versus</span></button>
+          </div>
+
+          <div class="mode-select-row">
+            <button id="btn-quick-play" class="btn-primary">🎮 Main Cepat (Pilih Game)</button>
+            <button id="btn-cup-tournament" class="btn-accent">🏆 Turnamen Piala Nanas (5 Ronde)</button>
+          </div>
+
+          <div class="menu-footer-actions">
+            <button id="btn-sound-toggle" class="btn-icon">🔊 Suara: ON</button>
+            <button id="btn-how-to-play" class="btn-icon">ℹ️ Panduan Kontrol</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Selection Grid Screen -->
+      <div id="screen-games" class="screen">
+        <div class="screen-header">
+          <button id="btn-back-to-menu" class="btn-back">⬅ Menu</button>
+          <h2>Pilih Mini-Game</h2>
+          <span class="spacer"></span>
+        </div>
+        <div id="minigames-grid" class="games-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- In-Game HUD -->
+      <div id="in-game-hud" class="hud-layer hidden">
+        <div class="hud-top">
+          <button id="btn-pause" class="btn-hud">⏸</button>
+          <div id="hud-game-title" class="hud-title">Mini Game</div>
+          <div id="hud-timer" class="hud-timer">30</div>
+          <div class="hud-scores">
+            <span class="score-badge p1" id="score-p1">P1: 0</span>
+            <span class="score-badge p2" id="score-p2">P2: 0</span>
+            <span class="score-badge p3" id="score-p3">P3: 0</span>
+            <span class="score-badge p4" id="score-p4">P4: 0</span>
+          </div>
+        </div>
+
+        <!-- Touch Controls in 4 Corners -->
+        <div id="touch-controls">
+          <div id="touch-p1" class="touch-corner bottom-left">
+            <div class="joystick-base" id="joy-base-p1"><div class="joystick-knob" id="joy-knob-p1"></div></div>
+            <button class="action-btn p1" id="act-p1">ACTION</button>
+          </div>
+          <div id="touch-p2" class="touch-corner top-left">
+            <div class="joystick-base" id="joy-base-p2"><div class="joystick-knob" id="joy-knob-p2"></div></div>
+            <button class="action-btn p2" id="act-p2">ACTION</button>
+          </div>
+          <div id="touch-p3" class="touch-corner top-right">
+            <div class="joystick-base" id="joy-base-p3"><div class="joystick-knob" id="joy-knob-p3"></div></div>
+            <button class="action-btn p3" id="act-p3">ACTION</button>
+          </div>
+          <div id="touch-p4" class="touch-corner bottom-right">
+            <div class="joystick-base" id="joy-base-p4"><div class="joystick-knob" id="joy-knob-p4"></div></div>
+            <button class="action-btn p4" id="act-p4">ACTION</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Round Over Modal -->
+      <div id="screen-round-over" class="modal-screen hidden">
+        <div class="modal-card">
+          <h2 id="round-winner-title">Pemenang Ronde!</h2>
+          <div id="round-winner-display" class="winner-avatar">🍍</div>
+          <p id="round-winner-desc">Nanas Merah Mendapatkan Skor!</p>
+          <div id="round-standings" class="standings-list"></div>
+          <div class="modal-buttons">
+            <button id="btn-next-round" class="btn-primary">Lanjut ➡</button>
+            <button id="btn-exit-to-menu" class="btn-secondary">Kembali ke Menu</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grand Tournament Podium Screen -->
+      <div id="screen-podium" class="modal-screen hidden">
+        <div class="modal-card wide">
+          <h2>🏆 JUARA TURNAMEN NANAS 🏆</h2>
+          <div class="podium-stage">
+            <div class="podium-col second">
+              <div class="podium-nanas" id="podium-p2">🍍</div>
+              <div class="podium-block">2</div>
+              <span id="podium-name-p2">Pemain 2</span>
+            </div>
+            <div class="podium-col first">
+              <div class="podium-crown">👑</div>
+              <div class="podium-nanas winner" id="podium-p1">🍍</div>
+              <div class="podium-block">1</div>
+              <span id="podium-name-p1">Pemain 1</span>
+            </div>
+            <div class="podium-col third">
+              <div class="podium-nanas" id="podium-p3">🍍</div>
+              <div class="podium-block">3</div>
+              <span id="podium-name-p3">Pemain 3</span>
+            </div>
+          </div>
+          <div class="modal-buttons">
+            <button id="btn-podium-restart" class="btn-primary">Main Lagi 🔄</button>
+            <button id="btn-podium-menu" class="btn-secondary">Menu Utama</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Guide Modal -->
+      <div id="screen-guide" class="modal-screen hidden">
+        <div class="modal-card">
+          <h3>🎮 Panduan Kontrol</h3>
+          <p><b>Di HP / Tablet (Layar Sentuh):</b><br>Gunakan joystick dan tombol aksi di 4 sudut layar untuk setiap pemain.</p>
+          <p><b>Di Komputer / Keyboard:</b><br>
+            • <b>Pemain 1 (Merah):</b> W A S D + [Spasi]<br>
+            • <b>Pemain 2 (Biru):</b> Panah Arah + [Enter]<br>
+            • <b>Pemain 3 (Hijau):</b> I J K L + [U]<br>
+            • <b>Pemain 4 (Kuning):</b> Numpad 8 4 5 6 + [Numpad 0]
+          </p>
+          <button id="btn-close-guide" class="btn-primary">Mengerti 👍</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
