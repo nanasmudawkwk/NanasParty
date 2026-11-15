@@ -252,7 +252,13 @@
     }
   }
 
-  // Draw Cute Pineapple Character
+  // Screen Shake Manager
+  let screenShake = 0;
+  function triggerScreenShake(amt) {
+    screenShake = Math.max(screenShake, amt);
+  }
+
+  // Draw Cute 3D Glossy Pineapple Character
   function drawPineapple(x, y, angle, radius, playerIndex, options = {}) {
     ctx.save();
     ctx.translate(x, y);
@@ -260,90 +266,156 @@
 
     const cfg = PLAYER_CONFIG[playerIndex];
     const isDead = options.isDead || false;
+    const isMoving = options.isMoving || false;
+    const animStep = isMoving ? Math.sin(performance.now() * 0.015) : 0;
 
-    // Shadow
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+    // Soft 3D Drop Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
     ctx.beginPath();
-    ctx.ellipse(0, radius * 0.7, radius * 0.9, radius * 0.4, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, radius * 0.85, radius * 0.95, radius * 0.42, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Pineapple Green Crown (Leaves)
-    ctx.fillStyle = cfg.leafColor;
-    const leaves = [-0.4, -0.15, 0.15, 0.4];
+    // Waddling Cartoon Shoes/Feet
+    if (!isDead) {
+      ctx.fillStyle = '#ff8f00';
+      ctx.strokeStyle = '#212121';
+      ctx.lineWidth = 2;
+      // Left foot
+      ctx.beginPath();
+      ctx.ellipse(-radius * 0.45, radius * 0.8 + animStep * 4, radius * 0.28, radius * 0.16, 0.2, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+      // Right foot
+      ctx.beginPath();
+      ctx.ellipse(radius * 0.45, radius * 0.8 - animStep * 4, radius * 0.28, radius * 0.16, -0.2, 0, Math.PI * 2);
+      ctx.fill(); ctx.stroke();
+    }
+
+    // Lush 3D Pineapple Crown (Leaves with gradients)
+    const leaves = [-0.5, -0.25, 0, 0.25, 0.5];
     for (let la of leaves) {
       ctx.save();
       ctx.rotate(la);
+      const leafGrad = ctx.createLinearGradient(0, -radius * 1.4, 0, -radius * 0.5);
+      leafGrad.addColorStop(0, '#81c784');
+      leafGrad.addColorStop(1, cfg.leafColor);
+      ctx.fillStyle = leafGrad;
       ctx.beginPath();
-      ctx.moveTo(-radius * 0.2, -radius * 0.6);
-      ctx.quadraticCurveTo(0, -radius * 1.3, radius * 0.2, -radius * 0.6);
+      ctx.moveTo(-radius * 0.22, -radius * 0.5);
+      ctx.quadraticCurveTo(0, -radius * 1.4, radius * 0.22, -radius * 0.5);
       ctx.closePath();
       ctx.fill();
+      ctx.strokeStyle = '#1b5e20';
+      ctx.lineWidth = 2;
+      ctx.stroke();
       ctx.restore();
     }
 
-    // Pineapple Body (Oval)
-    ctx.fillStyle = cfg.color;
+    // 3D Glossy Pineapple Body (Radial Gradient for depth)
+    const bodyGrad = ctx.createRadialGradient(-radius * 0.3, -radius * 0.3, radius * 0.2, 0, 0, radius * 1.1);
+    bodyGrad.addColorStop(0, '#fff9c4'); // highlight
+    bodyGrad.addColorStop(0.35, cfg.color);
+    bodyGrad.addColorStop(1, '#e65100'); // shadow edge
+    ctx.fillStyle = bodyGrad;
     ctx.beginPath();
-    ctx.ellipse(0, 0, radius * 0.85, radius, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, 0, radius * 0.88, radius * 1.05, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = '#212121';
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Diamond Crosshatch pattern (Pineapple texture)
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+    // Diamond Crosshatch Pineapple Texture with Bevel
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-radius * 0.55, -radius * 0.45); ctx.lineTo(radius * 0.55, radius * 0.45);
+    ctx.moveTo(-radius * 0.65, 0); ctx.lineTo(radius * 0.65, 0);
+    ctx.moveTo(-radius * 0.55, radius * 0.45); ctx.lineTo(radius * 0.55, -radius * 0.45);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(-radius * 0.5, -radius * 0.4); ctx.lineTo(radius * 0.5, radius * 0.4);
-    ctx.moveTo(-radius * 0.6, 0); ctx.lineTo(radius * 0.6, 0);
     ctx.moveTo(-radius * 0.5, radius * 0.4); ctx.lineTo(radius * 0.5, -radius * 0.4);
     ctx.stroke();
 
-    // Bandana / Headband with player number
-    ctx.fillStyle = cfg.bandana;
+    // Hero Bandana / Headband with Bevel & Player Badge
+    const bandGrad = ctx.createLinearGradient(0, -radius * 0.5, 0, -radius * 0.1);
+    bandGrad.addColorStop(0, '#ffffff');
+    bandGrad.addColorStop(0.3, cfg.bandana);
+    bandGrad.addColorStop(1, '#000000');
+    ctx.fillStyle = bandGrad;
     ctx.beginPath();
-    ctx.rect(-radius * 0.8, -radius * 0.45, radius * 1.6, radius * 0.35);
+    ctx.rect(-radius * 0.85, -radius * 0.48, radius * 1.7, radius * 0.38);
     ctx.fill();
     ctx.strokeStyle = '#212121';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(-radius * 0.8, -radius * 0.45, radius * 1.6, radius * 0.35);
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(-radius * 0.85, -radius * 0.48, radius * 1.7, radius * 0.38);
 
-    // Eyes
+    // Bandana knot ribbons on side
+    ctx.fillStyle = cfg.bandana;
+    ctx.beginPath();
+    ctx.ellipse(radius * 0.95, -radius * 0.3, radius * 0.22, radius * 0.12, 0.4, 0, Math.PI * 2);
+    ctx.fill(); ctx.stroke();
+
+    // Eyes & Face
     if (isDead) {
-      // X eyes
+      // Dizzy X Eyes
       ctx.strokeStyle = '#212121';
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 3.5;
       // Left eye X
       ctx.beginPath();
-      ctx.moveTo(-radius * 0.45, -radius * 0.1); ctx.lineTo(-radius * 0.15, 0.1 * radius);
-      ctx.moveTo(-radius * 0.15, -radius * 0.1); ctx.lineTo(-radius * 0.45, 0.1 * radius);
+      ctx.moveTo(-radius * 0.45, -radius * 0.08); ctx.lineTo(-radius * 0.15, 0.12 * radius);
+      ctx.moveTo(-radius * 0.15, -radius * 0.08); ctx.lineTo(-radius * 0.45, 0.12 * radius);
       // Right eye X
-      ctx.moveTo(radius * 0.15, -radius * 0.1); ctx.lineTo(radius * 0.45, 0.1 * radius);
-      ctx.moveTo(radius * 0.45, -radius * 0.1); ctx.lineTo(radius * 0.15, 0.1 * radius);
+      ctx.moveTo(radius * 0.15, -radius * 0.08); ctx.lineTo(radius * 0.45, 0.12 * radius);
+      ctx.moveTo(radius * 0.45, -radius * 0.08); ctx.lineTo(radius * 0.15, 0.12 * radius);
       ctx.stroke();
-    } else {
-      // Big cartoon eyes
-      ctx.fillStyle = 'white';
-      ctx.beginPath();
-      ctx.arc(-radius * 0.3, -radius * 0.05, radius * 0.22, 0, Math.PI * 2);
-      ctx.arc(radius * 0.3, -radius * 0.05, radius * 0.22, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#212121';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      // Pupils looking forward
+      // Shocked mouth
       ctx.fillStyle = '#212121';
       ctx.beginPath();
-      ctx.arc(-radius * 0.26, -radius * 0.02, radius * 0.1, 0, Math.PI * 2);
-      ctx.arc(radius * 0.34, -radius * 0.02, radius * 0.1, 0, Math.PI * 2);
+      ctx.arc(0, radius * 0.3, radius * 0.14, 0, Math.PI * 2);
       ctx.fill();
-
-      // Smile
+    } else {
+      // Big Glossy Cartoon Eyes
+      ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.arc(0, radius * 0.25, radius * 0.22, 0, Math.PI);
+      ctx.ellipse(-radius * 0.3, -radius * 0.02, radius * 0.24, radius * 0.28, 0, 0, Math.PI * 2);
+      ctx.ellipse(radius * 0.3, -radius * 0.02, radius * 0.24, radius * 0.28, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#212121';
       ctx.lineWidth = 2.5;
       ctx.stroke();
+
+      // Colored Iris & Black Pupil
+      ctx.fillStyle = '#1e88e5';
+      ctx.beginPath();
+      ctx.arc(-radius * 0.26, 0, radius * 0.14, 0, Math.PI * 2);
+      ctx.arc(radius * 0.34, 0, radius * 0.14, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#212121';
+      ctx.beginPath();
+      ctx.arc(-radius * 0.26, 0, radius * 0.09, 0, Math.PI * 2);
+      ctx.arc(radius * 0.34, 0, radius * 0.09, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eye Sparkle / Specular Dot
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(-radius * 0.3, -radius * 0.05, radius * 0.05, 0, Math.PI * 2);
+      ctx.arc(radius * 0.3, -radius * 0.05, radius * 0.05, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Happy Smile
+      ctx.fillStyle = '#b71c1c';
+      ctx.beginPath();
+      ctx.arc(0, radius * 0.24, radius * 0.22, 0, Math.PI);
+      ctx.fill();
+      ctx.strokeStyle = '#212121';
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+      // Little white teeth
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(-radius * 0.12, radius * 0.24, radius * 0.24, radius * 0.08);
     }
 
     ctx.restore();
@@ -436,7 +508,7 @@
             if (t.alive && Math.hypot(b.x - t.x, b.y - t.y) < 30) {
               t.alive = false;
               b.life = 0;
-              window.soundCtrl.playExplosion();
+              window.soundCtrl.playExplosion(); triggerScreenShake(18);
               addParticle(t.x, t.y, PLAYER_CONFIG[j].color, 25, 6);
             }
           }
@@ -464,7 +536,7 @@
           bounces: 0,
           life: 4
         });
-        window.soundCtrl.playShoot();
+        window.soundCtrl.playShoot(); triggerScreenShake(4);
       },
       draw() {
         // Floor
@@ -564,7 +636,7 @@
             const kickPower = inp.action ? 12 : 6;
             this.ball.vx = Math.cos(pushAngle) * kickPower;
             this.ball.vy = Math.sin(pushAngle) * kickPower;
-            window.soundCtrl.playKick();
+            window.soundCtrl.playKick(); triggerScreenShake(6);
             addParticle(this.ball.x, this.ball.y, '#ffffff', 6, 4);
           }
         }
@@ -576,12 +648,12 @@
         if (this.ball.x < 80 && this.ball.y > goalTop && this.ball.y < goalBottom) {
           // Goal Team Blue (P2/P4)
           this.teamBlueScore++;
-          window.soundCtrl.playGoal();
+          window.soundCtrl.playGoal(); triggerScreenShake(20);
           this.resetBall();
         } else if (this.ball.x > V_WIDTH - 80 && this.ball.y > goalTop && this.ball.y < goalBottom) {
           // Goal Team Red (P1/P3)
           this.teamRedScore++;
-          window.soundCtrl.playGoal();
+          window.soundCtrl.playGoal(); triggerScreenShake(20);
           this.resetBall();
         }
 
@@ -814,7 +886,7 @@
                 p1.vy -= Math.sin(angle) * force;
                 p2.vx += Math.cos(angle) * force;
                 p2.vy += Math.sin(angle) * force;
-                window.soundCtrl.playKick();
+                window.soundCtrl.playKick(); triggerScreenShake(6);
                 addParticle((p1.x + p2.x) / 2, (p1.y + p2.y) / 2, '#fff', 8, 3);
               }
             }
@@ -1006,7 +1078,7 @@
 
         // Bomb explodes!
         if (this.fuseTimer <= 0) {
-          window.soundCtrl.playExplosion();
+          window.soundCtrl.playExplosion(); triggerScreenShake(18);
           this.players[this.bombHolder].alive = false;
           addParticle(this.players[this.bombHolder].x, this.players[this.bombHolder].y, '#ff5722', 40, 8);
 
@@ -1109,7 +1181,7 @@
           for (let g of this.ghosts) {
             if (Math.hypot(p.x - g.x, p.y - g.y) < 36) {
               p.alive = false;
-              window.soundCtrl.playExplosion();
+              window.soundCtrl.playExplosion(); triggerScreenShake(18);
               addParticle(p.x, p.y, '#9c27b0', 20, 5);
             }
           }
@@ -1424,7 +1496,16 @@
     // Render
     ctx.save();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.translate(offsetX, offsetY);
+
+    let shakeX = 0, shakeY = 0;
+    if (screenShake > 0) {
+      shakeX = (Math.random() - 0.5) * screenShake;
+      shakeY = (Math.random() - 0.5) * screenShake;
+      screenShake *= 0.88;
+      if (screenShake < 0.2) screenShake = 0;
+    }
+
+    ctx.translate(offsetX + shakeX, offsetY + shakeY);
     ctx.scale(scale, scale);
 
     if (State.activeGame) {
